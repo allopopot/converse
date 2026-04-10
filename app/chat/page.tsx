@@ -63,12 +63,12 @@ function MessagePane() {
         {
             direction: "send",
             message: "Hey mate wazzup?",
-            time: new Date()
+            time: new Date("2026-01-01")
         },
         {
             direction: "recieve",
             message: "Hello there mate!",
-            time: new Date()
+            time: new Date("2026-01-01")
         },
     ]
 
