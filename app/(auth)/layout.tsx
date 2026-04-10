@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
-import ContactPane from "@/components/ContactPane";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,7 +27,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased w-dvw h-dvh grid place-items-center-safe`}
       >
-        <ContactPane></ContactPane>
         {children}
       </body>
     </html>
