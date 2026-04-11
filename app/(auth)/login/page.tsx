@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { authClient } from "@/lib/auth-client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,8 +16,13 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // TODO: Add login logic here
-    console.log("Login:", { email, password });
+
+    let { data, error } = await authClient.signIn.email({
+      email, password
+    })
+    if (error) {
+      alert(error.message)
+    }
     setIsLoading(false);
   };
 
