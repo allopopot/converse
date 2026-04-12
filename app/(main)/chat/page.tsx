@@ -6,7 +6,7 @@ import { ChevronLeft, Send, Paperclip } from "lucide-react"
 import { useSetAtom } from "jotai"
 import { toggleState } from "@/states/ContactsPane"
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
-import { getRelativeTimeFormat } from "@/utils/format";
+import { getRelativeTimeFormat } from "@/lib/utils";
 
 export default function Chat() {
     return (

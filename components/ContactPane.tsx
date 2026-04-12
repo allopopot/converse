@@ -2,11 +2,12 @@
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { InputGroup, InputGroupInput, InputGroupAddon, InputGroupButton } from "./ui/input-group"
-import { Search, EllipsisVertical, Plus, PersonStanding, Mailbox, MailPlus } from "lucide-react"
+import { Search, EllipsisVertical, Plus, Mailbox, MailPlus, LoaderPinwheel } from "lucide-react"
 import { Button } from "./ui/button"
 import { useAtomValue, useSetAtom } from 'jotai'
 import { toggleState } from "@/states/ContactsPane"
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { userAtom, userLoadingAtom } from "@/states/User"
 
 export default function ContactsPane() {
     let ts = useAtomValue(toggleState)
@@ -20,15 +21,22 @@ export default function ContactsPane() {
 }
 
 function SelfInfoPane() {
+    const user = useAtomValue(userAtom)
+    const userLoading = useAtomValue(userLoadingAtom)
     return (
         <div className="w-full p-4 flex flex-row flex-nowrap gap-4 items-center pb-4 border-b-2 sticky top-0 bg-background">
             <Avatar className="size-16">
-                <AvatarImage src="https://www.w3schools.com/howto/img_avatar2.png" className="rounded-full" />
-                <AvatarFallback>AO</AvatarFallback>
+                <AvatarImage src={user?.image ?? ""} className="rounded-full" />
+                <AvatarFallback>
+                    <LoaderPinwheel className="animate-spin"></LoaderPinwheel>
+                </AvatarFallback>
             </Avatar>
             <div>
-                <h2 className="text-xl font-semibold">Alva Operator</h2>
-                <p>alva@email.com</p>
+                {
+                    userLoading ? <p>Loading...</p> : null
+                }
+                <h2 className="text-xl font-semibold">{user?.name}</h2>
+                <p>{user?.email}</p>
             </div>
         </div>
     )
@@ -79,11 +87,11 @@ function ContactsListPane() {
     return (
         <div className="contents">
             <div className="w-full p-4 flex flex-row flex-nowrap gap-4 items-center pb-4 border-t-2 bg-background group">
-                <Avatar size="lg" className="cursor-pointer" onClick={()=>{setTs(false)}}>
+                <Avatar size="lg" className="cursor-pointer" onClick={() => { setTs(false) }}>
                     <AvatarImage src="https://www.w3schools.com/howto/img_avatar2.png" className="rounded-full" />
                     <AvatarFallback>AO</AvatarFallback>
                 </Avatar>
-                <div className="w-full cursor-pointer" onClick={()=>{setTs(false)}}>
+                <div className="w-full cursor-pointer" onClick={() => { setTs(false) }}>
                     <h2 className="text-md font-semibold group-hover:underline  underline-offset-2">Alva Operator</h2>
                     <p className="text-xs">alva@email.com</p>
                 </div>

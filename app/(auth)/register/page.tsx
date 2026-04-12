@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client"
+import { generateAvatar } from "@/lib/utils";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -21,11 +22,12 @@ export default function RegisterPage() {
             name: `${firstName} ${lastName}`,
             email: email,
             password: password,
+            image: generateAvatar(firstName, lastName)
         })
         if (error) {
             alert("Something went wrong")
         }
-        console.log(data)
+
         setIsLoading(false);
     };
 
