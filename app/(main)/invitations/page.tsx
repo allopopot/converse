@@ -22,8 +22,18 @@ interface Invitation {
   sentAt: Date;
 }
 
+interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  image?: string;
+}
+
 export default function InvitationsPage() {
   const [email, setEmail] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [invitations, setInvitations] = useState<Invitation[]>([
@@ -69,6 +79,30 @@ export default function InvitationsPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const searchContacts = async (query: string) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      setContacts([]);
+      return;
+    }
+    setIsSearching(true);
+    try {
+      const res = await fetch(`/api/contact?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      setContacts(data);
+    } catch (error) {
+      console.error("Failed to search contacts:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const selectContact = (contact: Contact) => {
+    setEmail(contact.email);
+    setSearchQuery(contact.name);
+    setContacts([]);
+  };
+
   return (
     <div className="w-full h-full bg-background p-6 overflow-auto">
       <div className="max-w-2xl mx-auto space-y-8">
@@ -84,12 +118,12 @@ export default function InvitationsPage() {
             <MailPlus className="size-5" />
             Send Invitation
           </h2>
-          <div className="flex gap-2">
+          <div className="relative flex gap-2">
             <Input
-              type="email"
-              placeholder="Enter email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              placeholder="Search by name or email"
+              value={searchQuery || email}
+              onChange={(e) => searchContacts(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSendInvite()}
               className="flex-1"
             />
@@ -106,6 +140,29 @@ export default function InvitationsPage() {
                 </>
               )}
             </Button>
+            {contacts.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-lg z-10 max-h-60 overflow-auto">
+                {contacts.map((contact) => (
+                  <div
+                    key={contact.id}
+                    onClick={() => selectContact(contact)}
+                    className="flex items-center gap-3 p-3 cursor-pointer hover:bg-muted"
+                  >
+                    <Avatar size="sm">
+                      <AvatarFallback>
+                        {contact.name[0].toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{contact.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {contact.email}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -166,12 +223,13 @@ export default function InvitationsPage() {
                     </div>
                   </div>
                   <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${invite.status === "accepted"
-                      ? "bg-green-500/10 text-green-500"
-                      : invite.status === "rejected"
-                        ? "bg-red-500/10 text-red-500"
-                        : "bg-yellow-500/10 text-yellow-500"
-                      }`}
+                    className={`px-2 py-1 rounded text-xs font-medium ${
+                      invite.status === "accepted"
+                        ? "bg-green-500/10 text-green-500"
+                        : invite.status === "rejected"
+                          ? "bg-red-500/10 text-red-500"
+                          : "bg-yellow-500/10 text-yellow-500"
+                    }`}
                   >
                     {invite.status.charAt(0).toUpperCase() +
                       invite.status.slice(1)}

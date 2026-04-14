@@ -1,33 +1,47 @@
-import { relations, sql } from "drizzle-orm";
+import { relations, SQL, sql } from "drizzle-orm";
 import {
+  boolean,
+  customType,
+  index,
   pgTable,
   text,
   timestamp,
-  boolean,
   uuid,
-  index,
 } from "drizzle-orm/pg-core";
 
-export const user = pgTable("user", {
-  id: uuid("id")
-    .default(sql`pg_catalog.gen_random_uuid()`)
-    .primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  emailVerified: boolean("email_verified").default(false).notNull(),
-  image: text("image"),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at")
-    .$onUpdate(() => new Date())
-    .notNull(),
+export const tsvector = customType<{
+  data: string;
+}>({
+  dataType() {
+    return `tsvector`;
+  },
 });
+
+export const user = pgTable(
+  "user",
+  {
+    id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
+    name: text("name").notNull(),
+    email: text("email").notNull().unique(),
+    emailVerified: boolean("email_verified").default(false).notNull(),
+    image: text("image"),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => new Date())
+      .notNull(),
+    search: tsvector("search")
+      .notNull()
+      .generatedAlwaysAs(
+        sql<any>`to_tsvector('english'::regconfig, (name || ' ' || email))`,
+      ),
+  },
+  (t) => [index("idx_search").using("gin", t.search)],
+);
 
 export const session = pgTable(
   "session",
   {
-    id: uuid("id")
-      .default(sql`pg_catalog.gen_random_uuid()`)
-      .primaryKey(),
+    id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
     expiresAt: timestamp("expires_at").notNull(),
     token: text("token").notNull().unique(),
     createdAt: timestamp("created_at").notNull(),
@@ -46,9 +60,7 @@ export const session = pgTable(
 export const account = pgTable(
   "account",
   {
-    id: uuid("id")
-      .default(sql`pg_catalog.gen_random_uuid()`)
-      .primaryKey(),
+    id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
     accountId: text("account_id").notNull(),
     providerId: text("provider_id").notNull(),
     userId: uuid("user_id")
@@ -72,9 +84,7 @@ export const account = pgTable(
 export const verification = pgTable(
   "verification",
   {
-    id: uuid("id")
-      .default(sql`pg_catalog.gen_random_uuid()`)
-      .primaryKey(),
+    id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
     identifier: text("identifier").notNull(),
     value: text("value").notNull(),
     expiresAt: timestamp("expires_at").notNull(),
