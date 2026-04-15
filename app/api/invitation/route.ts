@@ -11,32 +11,60 @@ export async function GET(request: Request) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  try {
-    const pendingInvitations = await db
-      .select({
-        id: invitation.id,
-        inviterId: invitation.inviterId,
-        inviteeId: invitation.inviteeId,
-        status: invitation.status,
-        createdAt: invitation.createdAt,
-        updatedAt: invitation.updatedAt,
-        inviteeName: user.name,
-        inviteeEmail: user.email,
-        inviteeImage: user.image
-      })
-      .from(invitation)
-      .innerJoin(user, eq(invitation.inviteeId, user.id))
-      .where(
-        and(
-          eq(invitation.inviterId, session.user.id),
-          eq(invitation.status, "pending"),
-        ),
-      )
-      .orderBy(invitation.createdAt);
+  const { searchParams } = new URL(request.url);
+  const type = searchParams.get("type") || "sent"; // 'sent' or 'received'
 
-    return NextResponse.json(pendingInvitations);
+  try {
+    let invitations: any[];
+    if (type === "received") {
+      invitations = await db
+        .select({
+          id: invitation.id,
+          inviterId: invitation.inviterId,
+          inviteeId: invitation.inviteeId,
+          status: invitation.status,
+          createdAt: invitation.createdAt,
+          updatedAt: invitation.updatedAt,
+          inviterName: user.name,
+          inviterEmail: user.email,
+          inviterImage: user.image,
+        })
+        .from(invitation)
+        .innerJoin(user, eq(invitation.inviterId, user.id))
+        .where(
+          and(
+            eq(invitation.inviteeId, session.user.id),
+            eq(invitation.status, "pending"),
+          ),
+        )
+        .orderBy(invitation.createdAt);
+    } else {
+      invitations = await db
+        .select({
+          id: invitation.id,
+          inviterId: invitation.inviterId,
+          inviteeId: invitation.inviteeId,
+          status: invitation.status,
+          createdAt: invitation.createdAt,
+          updatedAt: invitation.updatedAt,
+          inviteeName: user.name,
+          inviteeEmail: user.email,
+          inviteeImage: user.image,
+        })
+        .from(invitation)
+        .innerJoin(user, eq(invitation.inviteeId, user.id))
+        .where(
+          and(
+            eq(invitation.inviterId, session.user.id),
+            eq(invitation.status, "pending"),
+          ),
+        )
+        .orderBy(invitation.createdAt);
+    }
+
+    return NextResponse.json(invitations);
   } catch (error) {
-    console.error("Error fetching pending invitations:", error);
+    console.error("Error fetching invitations:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
@@ -88,6 +116,7 @@ export async function POST(request: Request) {
         and(
           eq(invitation.inviterId, session.user.id),
           eq(invitation.inviteeId, inviteeId),
+          eq(invitation.status, "pending"),
         ),
       )
       .limit(1);
