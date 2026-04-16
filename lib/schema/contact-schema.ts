@@ -43,7 +43,7 @@ export const invitation = pgTable(
   },
   (table) => [
     index("invitation_inviterId_idx").on(table.inviterId),
-    index("invitation_inviteeId_idx").on(table.inviteeId)
+    index("invitation_inviteeId_idx").on(table.inviteeId),
   ],
 );
 

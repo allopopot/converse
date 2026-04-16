@@ -1,3 +1,3 @@
 import { atom } from "jotai";
 
-export const toggleState = atom(false)
+export const toggleState = atom(false);

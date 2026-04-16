@@ -18,10 +18,11 @@ export default function LoginPage() {
     setIsLoading(true);
 
     let { data, error } = await authClient.signIn.email({
-      email, password
-    })
+      email,
+      password,
+    });
     if (error) {
-      alert(error.message)
+      alert(error.message);
     }
     setIsLoading(false);
   };
