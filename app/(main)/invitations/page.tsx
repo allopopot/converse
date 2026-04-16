@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Clock, LoaderPinwheel, MailPlus, Send, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,7 @@ interface ReceivedInvitation {
 
 export default function InvitationsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -88,6 +89,33 @@ export default function InvitationsPage() {
     fetchReceivedInvitations();
   }, []);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (!debouncedQuery.trim()) {
+      setContacts([]);
+      return;
+    }
+    const fetchContacts = async () => {
+      setIsSearching(true);
+      try {
+        const res = await fetch(
+          `/api/user?q=${encodeURIComponent(debouncedQuery)}`,
+        );
+        const data = await res.json();
+        setContacts(data);
+      } catch (error) {
+        console.error("Failed to search contacts:", error);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+    fetchContacts();
+  }, [debouncedQuery]);
+
   const handleSendInvite = async () => {
     if (!selectedContact) return;
     setIsLoading(true);
@@ -115,23 +143,13 @@ export default function InvitationsPage() {
     }
   };
 
-  const searchContacts = async (query: string) => {
-    setSearchQuery(query);
-    if (!query.trim()) {
-      setContacts([]);
-      return;
-    }
-    setIsSearching(true);
-    try {
-      const res = await fetch(`/api/user?q=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      setContacts(data);
-    } catch (error) {
-      console.error("Failed to search contacts:", error);
-    } finally {
-      setIsSearching(false);
-    }
-  };
+  const searchContacts = useCallback(
+    (query: string) => {
+      setSearchQuery(query);
+      if (selectedContact) setSelectedContact(null);
+    },
+    [selectedContact],
+  );
 
   const selectContact = (contact: Contact) => {
     setSelectedContact(contact);
@@ -232,7 +250,8 @@ export default function InvitationsPage() {
                     onClick={() => selectContact(contact)}
                     className="flex items-center gap-3 p-3 cursor-pointer hover:bg-muted"
                   >
-                    <Avatar size="sm">
+                    <Avatar size="lg">
+                      <AvatarImage src={contact.image}></AvatarImage>
                       <AvatarFallback>
                         {contact.name[0].toUpperCase()}
                       </AvatarFallback>
