@@ -1,8 +1,8 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, or } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { invitation, user } from "@/lib/schema";
+import { contact, invitation, user } from "@/lib/schema";
 
 export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: request.headers });
@@ -105,6 +105,34 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Cannot invite yourself" },
         { status: 400 },
+      );
+    }
+
+    // Check if already a contact
+    const [existingContact] = await db
+      .select({ id: contact.id })
+      .from(contact)
+      .where(
+        and(
+          eq(contact.status, "accepted"),
+          or(
+            and(
+              eq(contact.userId, session.user.id),
+              eq(contact.contactUserId, inviteeId),
+            ),
+            and(
+              eq(contact.userId, inviteeId),
+              eq(contact.contactUserId, session.user.id),
+            ),
+          ),
+        ),
+      )
+      .limit(1);
+
+    if (existingContact) {
+      return NextResponse.json(
+        { error: "This person is already your contact" },
+        { status: 409 },
       );
     }
 
