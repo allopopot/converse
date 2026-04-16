@@ -123,7 +123,7 @@ export default function InvitationsPage() {
     }
     setIsSearching(true);
     try {
-      const res = await fetch(`/api/contact?q=${encodeURIComponent(query)}`);
+      const res = await fetch(`/api/user?q=${encodeURIComponent(query)}`);
       const data = await res.json();
       setContacts(data);
     } catch (error) {
@@ -290,13 +290,12 @@ export default function InvitationsPage() {
                     </div>
                   </div>
                   <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${
-                      invite.status === "accepted"
+                    className={`px-2 py-1 rounded text-xs font-medium ${invite.status === "accepted"
                         ? "bg-green-500/10 text-green-500"
                         : invite.status === "rejected"
                           ? "bg-red-500/10 text-red-500"
                           : "bg-yellow-500/10 text-yellow-500"
-                    }`}
+                      }`}
                   >
                     {invite.status.charAt(0).toUpperCase() +
                       invite.status.slice(1)}
@@ -366,11 +365,10 @@ export default function InvitationsPage() {
                       </>
                     ) : (
                       <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${
-                          invite.status === "accepted"
+                        className={`px-2 py-1 rounded text-xs font-medium ${invite.status === "accepted"
                             ? "bg-green-500/10 text-green-500"
                             : "bg-red-500/10 text-red-500"
-                        }`}
+                          }`}
                       >
                         {invite.status.charAt(0).toUpperCase() +
                           invite.status.slice(1)}
