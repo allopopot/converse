@@ -8,6 +8,8 @@ import {
   MailPlus,
   Plus,
   Search,
+  LogOut,
+  Menu
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -37,6 +39,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "./ui/input-group";
+import { authClient } from "@/lib/auth-client";
 
 export default function ContactsPane() {
   const ts = useAtomValue(toggleState);
@@ -87,20 +90,23 @@ function ContactsSearchPane() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size={"icon-sm"}>
-              <Plus></Plus>
+              <Menu></Menu>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuGroup>
               <DropdownMenuItem
-                onClick={() => router.push("/invitations?mode=send")}
+                onClick={() => router.push("/invitations")}
               >
                 <MailPlus></MailPlus>
-                Send an Invite
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push("/invitations")}>
-                <Mailbox></Mailbox>
                 Invitations
+              </DropdownMenuItem>
+              <DropdownMenuItem variant="destructive" onClick={async () => {
+                await authClient.signOut()
+                router.replace("/")
+              }}>
+                <LogOut></LogOut>
+                Logout
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>
