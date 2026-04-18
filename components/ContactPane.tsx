@@ -81,6 +81,7 @@ function ContactsSearchPane() {
   const searchQuery = useAtomValue(contactsSearchQueryAtom);
   const setSearchQuery = useSetAtom(contactsSearchQueryAtom);
   const router = useRouter();
+  const setTs = useSetAtom(toggleState);
 
   return (
     <div className="p-4 sticky top-0 bg-background">
@@ -96,7 +97,7 @@ function ContactsSearchPane() {
           <DropdownMenuContent>
             <DropdownMenuGroup>
               <DropdownMenuItem
-                onClick={() => router.push("/invitations")}
+                onClick={() => { router.push("/invitations"); setTs(() => false) }}
               >
                 <MailPlus></MailPlus>
                 Invitations

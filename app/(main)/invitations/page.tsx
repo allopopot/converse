@@ -1,11 +1,22 @@
 "use client";
 
-import { Check, Clock, LoaderPinwheel, MailPlus, Send, X } from "lucide-react";
+import {
+  Check,
+  ChevronLeft,
+  Clock,
+  LoaderPinwheel,
+  MailPlus,
+  Send,
+  X,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useSetAtom } from "jotai";
+import { toggleState } from "@/states/ContactsPane";
 
 interface Contact {
   id: string;
@@ -35,6 +46,7 @@ interface ReceivedInvitation {
 }
 
 export default function InvitationsPage() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -46,6 +58,8 @@ export default function InvitationsPage() {
   >([]);
   const [isLoadingInvitations, setIsLoadingInvitations] = useState(true);
   const [isLoadingReceived, setIsLoadingReceived] = useState(true);
+
+  let setTs = useSetAtom(toggleState);
 
   useEffect(() => {
     const fetchSentInvitations = async () => {
@@ -199,11 +213,24 @@ export default function InvitationsPage() {
   return (
     <div className="w-full h-full bg-background p-6 overflow-auto">
       <div className="max-w-2xl mx-auto space-y-8">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">Invite Contacts</h1>
-          <p className="text-muted-foreground">
-            Invite others to connect with you
-          </p>
+        <div className="space-y-4">
+          <Button className="md:hidden"
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={(ev) => {
+              ev.preventDefault();
+              setTs((state) => true);
+            }}>
+            <ChevronLeft className="size-4" />
+            Back
+          </Button>
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-bold">Invite Contacts</h1>
+            <p className="text-muted-foreground">
+              Invite others to connect with you
+            </p>
+          </div>
         </div>
 
         <div className="bg-card border rounded-lg p-6 space-y-4">
@@ -301,13 +328,12 @@ export default function InvitationsPage() {
                     </div>
                   </div>
                   <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${
-                      invite.status === "accepted"
-                        ? "bg-green-500/10 text-green-500"
-                        : invite.status === "rejected"
-                          ? "bg-red-500/10 text-red-500"
-                          : "bg-yellow-500/10 text-yellow-500"
-                    }`}
+                    className={`px-2 py-1 rounded text-xs font-medium ${invite.status === "accepted"
+                      ? "bg-green-500/10 text-green-500"
+                      : invite.status === "rejected"
+                        ? "bg-red-500/10 text-red-500"
+                        : "bg-yellow-500/10 text-yellow-500"
+                      }`}
                   >
                     {invite.status.charAt(0).toUpperCase() +
                       invite.status.slice(1)}
@@ -377,11 +403,10 @@ export default function InvitationsPage() {
                       </>
                     ) : (
                       <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${
-                          invite.status === "accepted"
-                            ? "bg-green-500/10 text-green-500"
-                            : "bg-red-500/10 text-red-500"
-                        }`}
+                        className={`px-2 py-1 rounded text-xs font-medium ${invite.status === "accepted"
+                          ? "bg-green-500/10 text-green-500"
+                          : "bg-red-500/10 text-red-500"
+                          }`}
                       >
                         {invite.status.charAt(0).toUpperCase() +
                           invite.status.slice(1)}
