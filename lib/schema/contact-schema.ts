@@ -4,7 +4,7 @@ import { index, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
 
 export const contact = pgTable(
-  "contact",
+  "converse_contact",
   {
     id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
     userId: uuid("user_id")
@@ -26,7 +26,7 @@ export const contact = pgTable(
 );
 
 export const invitation = pgTable(
-  "invitation",
+  "converse_invitation",
   {
     id: uuid("id").default(sql`pg_catalog.gen_random_uuid()`).primaryKey(),
     inviterId: uuid("inviter_id")

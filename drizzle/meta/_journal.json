@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1775842113751,
-      "tag": "0000_chilly_galactus",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1776176647830,
-      "tag": "0001_perfect_the_renegades",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1776265084426,
-      "tag": "0002_talented_santa_claus",
+      "when": 1776488904148,
+      "tag": "0000_sweet_roulette",
       "breakpoints": true
     }
   ]
