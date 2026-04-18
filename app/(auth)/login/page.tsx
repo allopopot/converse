@@ -2,9 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 
 export default function LoginPage() {
@@ -17,15 +17,15 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    let { data, error } = await authClient.signIn.email({
+    const { error } = await authClient.signIn.email({
       email,
       password,
     });
     if (error) {
-      alert(error.message);
+      toast.error(error.message);
     }
     setIsLoading(false);
-    router.push("/")
+    router.push("/");
   };
 
   return (

@@ -1,18 +1,11 @@
 "use client";
 
 import { Check, Clock, LoaderPinwheel, MailPlus, Send, X } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-interface Invitation {
-  id: string;
-  email: string;
-  name?: string;
-  status: "pending" | "accepted" | "rejected";
-  sentAt: Date;
-}
 
 interface Contact {
   id: string;
@@ -45,9 +38,7 @@ export default function InvitationsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [invitations, setInvitations] = useState<SentInvitation[]>([]);
   const [receivedInvitations, setReceivedInvitations] = useState<
@@ -100,7 +91,6 @@ export default function InvitationsPage() {
       return;
     }
     const fetchContacts = async () => {
-      setIsSearching(true);
       try {
         const res = await fetch(
           `/api/user?q=${encodeURIComponent(debouncedQuery)}`,
@@ -109,8 +99,6 @@ export default function InvitationsPage() {
         setContacts(data);
       } catch (error) {
         console.error("Failed to search contacts:", error);
-      } finally {
-        setIsSearching(false);
       }
     };
     fetchContacts();
@@ -127,7 +115,7 @@ export default function InvitationsPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || "Failed to send invitation");
+        toast.error(data.error || "Failed to send invitation");
         setIsLoading(false);
         return;
       }
@@ -135,9 +123,10 @@ export default function InvitationsPage() {
       setSelectedContact(null);
       setSearchQuery("");
       setContacts([]);
+      toast.success("Invitation sent");
     } catch (error) {
       console.error("Failed to send invitation:", error);
-      alert("Something went wrong");
+      toast.error("Something went wrong");
     } finally {
       setIsLoading(false);
     }
@@ -172,12 +161,13 @@ export default function InvitationsPage() {
               : inv,
           ),
         );
+        toast.success("Invitation accepted");
       } else {
-        alert("Failed to accept invitation");
+        toast.error("Failed to accept invitation");
       }
     } catch (error) {
       console.error("Failed to accept invitation:", error);
-      alert("Something went wrong");
+      toast.error("Something went wrong");
     }
   };
 
@@ -196,12 +186,13 @@ export default function InvitationsPage() {
               : inv,
           ),
         );
+        toast.success("Invitation rejected");
       } else {
-        alert("Failed to reject invitation");
+        toast.error("Failed to reject invitation");
       }
     } catch (error) {
       console.error("Failed to reject invitation:", error);
-      alert("Something went wrong");
+      toast.error("Something went wrong");
     }
   };
 
@@ -245,10 +236,11 @@ export default function InvitationsPage() {
             {contacts.length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-lg z-10 max-h-60 overflow-auto">
                 {contacts.map((contact) => (
-                  <div
+                  <button
+                    type="button"
                     key={contact.id}
                     onClick={() => selectContact(contact)}
-                    className="flex items-center gap-3 p-3 cursor-pointer hover:bg-muted"
+                    className="flex w-full items-center gap-3 p-3 text-left cursor-pointer hover:bg-muted"
                   >
                     <Avatar size="lg">
                       <AvatarImage src={contact.image}></AvatarImage>
@@ -262,7 +254,7 @@ export default function InvitationsPage() {
                         {contact.email}
                       </p>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}

@@ -3,11 +3,12 @@
 // import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
-import ContactPane from "@/components/ContactPane";
 import { useSetAtom } from "jotai";
 import { useEffect } from "react";
-import { userAtom, userLoadingAtom } from "@/states/User";
+import { Toaster } from "sonner";
+import ContactPane from "@/components/ContactPane";
 import { authClient } from "@/lib/auth-client";
+import { userAtom, userLoadingAtom } from "@/states/User";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,28 +30,24 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const sleep = (ms: number) => {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  };
-
   const setUser = useSetAtom(userAtom);
   const setUserLoading = useSetAtom(userLoadingAtom);
 
-  async function getSession() {
-    setUserLoading(true);
-    const response = await authClient.getSession();
-    if (response.error) {
-      setUserLoading(false);
-      return false;
-    }
-    await sleep(3000);
-    setUser(response.data?.user);
-    setUserLoading(false);
-  }
-
   useEffect(() => {
-    getSession();
-  }, []);
+    const getSession = async () => {
+      setUserLoading(true);
+      const response = await authClient.getSession();
+      if (response.error) {
+        setUserLoading(false);
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      setUser(response.data?.user);
+      setUserLoading(false);
+    };
+
+    void getSession();
+  }, [setUser, setUserLoading]);
 
   return (
     <html lang="en">
@@ -59,6 +56,9 @@ export default function RootLayout({
       >
         <ContactPane></ContactPane>
         {children}
+        <div className="absolute">
+          <Toaster richColors position="top-center" />
+        </div>
       </body>
     </html>
   );

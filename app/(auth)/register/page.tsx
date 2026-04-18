@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
@@ -18,14 +19,14 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    let { data, error } = await authClient.signUp.email({
+    const { error } = await authClient.signUp.email({
       name: `${firstName} ${lastName}`,
       email: email,
       password: password,
       image: generateAvatar(firstName, lastName),
     });
     if (error) {
-      alert("Something went wrong");
+      toast.error("Something went wrong");
     }
 
     setIsLoading(false);
