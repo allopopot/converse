@@ -3,12 +3,29 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChevronLeft, Send, Paperclip } from "lucide-react";
-import { useSetAtom } from "jotai";
+import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import { toggleState } from "@/states/ContactsPane";
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import { getRelativeTimeFormat } from "@/lib/utils";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { contactUserAtom } from "@/states/Chat";
 
 export default function Chat() {
+  const searchParams = useSearchParams()
+  let contactId = searchParams.get("contact")
+  const setContact = useSetAtom(contactUserAtom)
+
+  async function getContactInfo() {
+    const response = await fetch(`/api/contacts?contactId=${contactId}`)
+    const responseBody = await response.json()
+    setContact(responseBody.contacts[0])
+  }
+
+  useEffect(() => {
+    getContactInfo()
+  }, [])
+
   return (
     <div className="w-full h-full grid grid-cols-1 grid-rows-[max-content_1fr_max-content] overflow-hidden">
       <TopPane></TopPane>
@@ -20,6 +37,7 @@ export default function Chat() {
 
 function TopPane() {
   let setTs = useSetAtom(toggleState);
+  const contact = useAtomValue(contactUserAtom)
   return (
     <div className="h-16 border-b-2 overflow-hidden flex items-center gap-4 py-3 px-5">
       <Button
@@ -35,14 +53,14 @@ function TopPane() {
       </Button>
       <Avatar size="lg">
         <AvatarImage
-          src="https://www.w3schools.com/howto/img_avatar2.png"
+          src={contact?.image}
           className="rounded-full"
         />
         <AvatarFallback>AO</AvatarFallback>
       </Avatar>
       <div>
-        <h2 className="text-md font-semibold">Alva Operator</h2>
-        <p className="text-xs">alva@email.com</p>
+        <h2 className="text-md font-semibold">{contact?.name}</h2>
+        <p className="text-xs">{contact?.email}</p>
       </div>
     </div>
   );
