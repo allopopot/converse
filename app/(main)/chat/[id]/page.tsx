@@ -7,17 +7,16 @@ import { useSetAtom, useAtom, useAtomValue } from "jotai";
 import { toggleState } from "@/states/ContactsPane";
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import { getRelativeTimeFormat } from "@/lib/utils";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { contactUserAtom } from "@/states/Chat";
 
 export default function Chat() {
-  const searchParams = useSearchParams()
-  let contactId = searchParams.get("contact")
+  const params = useParams()
   const setContact = useSetAtom(contactUserAtom)
 
   async function getContactInfo() {
-    const response = await fetch(`/api/contacts?contactId=${contactId}`)
+    const response = await fetch(`/api/contacts?contactId=${params.id}`)
     const responseBody = await response.json()
     setContact(responseBody.contacts[0])
   }
@@ -53,7 +52,7 @@ function TopPane() {
       </Button>
       <Avatar size="lg">
         <AvatarImage
-          src={contact?.image}
+          src={contact?.image ?? ""}
           className="rounded-full"
         />
         <AvatarFallback>AO</AvatarFallback>

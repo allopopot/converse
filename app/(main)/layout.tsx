@@ -41,7 +41,6 @@ export default function RootLayout({
         setUserLoading(false);
         return;
       }
-      await new Promise((resolve) => setTimeout(resolve, 3000));
       setUser(response.data?.user);
       setUserLoading(false);
     };
