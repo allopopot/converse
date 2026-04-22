@@ -8,6 +8,13 @@
       "when": 1776488904148,
       "tag": "0000_sweet_roulette",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1776705847476,
+      "tag": "0001_slim_golden_guardian",
+      "breakpoints": true
     }
   ]
 }

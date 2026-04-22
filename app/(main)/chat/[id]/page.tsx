@@ -8,7 +8,7 @@ import { toggleState } from "@/states/ContactsPane";
 import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import { getRelativeTimeFormat } from "@/lib/utils";
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { contactUserAtom } from "@/states/Chat";
 
 export default function Chat() {
@@ -83,41 +83,42 @@ function ChatBar() {
 }
 
 function MessagePane() {
-  let sampleMessages = [
-    {
-      direction: "send",
-      message: "Hey mate wazzup?",
-      time: new Date("2026-01-01"),
-    },
-    {
-      direction: "recieve",
-      message: "Hello there mate!",
-      time: new Date("2026-01-01"),
-    },
-  ];
+  const params = useParams()
+  const [messages, setMessages] = useState<any[]>([])
+  const contactUser = useAtomValue(contactUserAtom)
+
+  async function getMessages() {
+    const response = await fetch(`/api/messages?contactId=${params.id}`)
+    const responseBody = await response.json()
+    setMessages(responseBody.messages)
+  }
+
+  useEffect(() => {
+    getMessages()
+  }, [])
 
   return (
     <div className="overflow-auto flex flex-col-reverse p-4">
-      {sampleMessages.map((ax, idx) => {
+      {messages.map((ax, idx) => {
         return (
           <div
             key={idx}
             className={[
               "flex w-full mb-4 first:mb-0",
-              ax.direction === "send" ? "justify-end-safe" : "",
+              ax.sender.id === contactUser?.id ? "justify-end-safe" : "",
             ].join(" ")}
           >
             <div
               className={[
                 "w-10/12 md:w-4/12 p-3 rounded-lg",
-                ax.direction === "send"
+                ax.sender.id === contactUser?.id
                   ? "bg-secondary text-secondary-foreground"
                   : "bg-accent-foreground text-accent",
               ].join(" ")}
             >
               <p>{ax.message}</p>
               <p className="italic text-right text-xs">
-                {getRelativeTimeFormat(ax.time)}
+                {getRelativeTimeFormat(new Date(ax.createdAt))}
               </p>
             </div>
           </div>

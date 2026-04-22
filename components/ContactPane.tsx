@@ -174,7 +174,7 @@ function ContactsListPane() {
 
   const handleContactClick = (contactId: string) => {
     setTs(false);
-    router.push(`/chat?contact=${contactId}`);
+    router.push(`/chat/${contactId}`);
   };
 
   if (loading) {
