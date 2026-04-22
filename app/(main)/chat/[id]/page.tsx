@@ -9,21 +9,30 @@ import { InputGroup, InputGroupInput } from "@/components/ui/input-group";
 import { getRelativeTimeFormat } from "@/lib/utils";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { contactUserAtom } from "@/states/Chat";
+import { contactUserAtom, messageHistoryAtom } from "@/states/Chat";
+import { userAtom } from "@/states/User";
 
 export default function Chat() {
-  const params = useParams()
-  const setContact = useSetAtom(contactUserAtom)
+  const params = useParams();
+  const setContact = useSetAtom(contactUserAtom);
+  const setMessageHistory = useSetAtom(messageHistoryAtom);
 
   async function getContactInfo() {
-    const response = await fetch(`/api/contacts?contactId=${params.id}`)
-    const responseBody = await response.json()
-    setContact(responseBody.contacts[0])
+    const response = await fetch(`/api/contacts?contactId=${params.id}`);
+    const responseBody = await response.json();
+    setContact(responseBody.contacts[0]);
+  }
+
+  async function getMessages() {
+    const response = await fetch(`/api/messages?contactId=${params.id}`);
+    const responseBody = await response.json();
+    setMessageHistory(responseBody.messages);
   }
 
   useEffect(() => {
-    getContactInfo()
-  }, [])
+    getContactInfo();
+    getMessages();
+  }, []);
 
   return (
     <div className="w-full h-full grid grid-cols-1 grid-rows-[max-content_1fr_max-content] overflow-hidden">
@@ -36,7 +45,7 @@ export default function Chat() {
 
 function TopPane() {
   let setTs = useSetAtom(toggleState);
-  const contact = useAtomValue(contactUserAtom)
+  const contact = useAtomValue(contactUserAtom);
   return (
     <div className="h-16 border-b-2 overflow-hidden flex items-center gap-4 py-3 px-5">
       <Button
@@ -51,10 +60,7 @@ function TopPane() {
         <ChevronLeft />
       </Button>
       <Avatar size="lg">
-        <AvatarImage
-          src={contact?.image ?? ""}
-          className="rounded-full"
-        />
+        <AvatarImage src={contact?.image ?? ""} className="rounded-full" />
         <AvatarFallback>AO</AvatarFallback>
       </Avatar>
       <div>
@@ -66,15 +72,48 @@ function TopPane() {
 }
 
 function ChatBar() {
+  const params = useParams();
+  const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
+  const setMessageHistory = useSetAtom(messageHistoryAtom);
+  const user = useAtomValue(userAtom);
+
+  async function sendMessage() {
+    if (!message.trim() || sending) return;
+    setSending(true);
+    const response = await fetch("/api/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ receiverId: params.id, message }),
+    });
+    if (response.ok) {
+      const res = await response.json();
+      setMessageHistory((prev: any[]) => [...prev, {
+        sender: { id: user?.id },
+        reciever: { id: params.id },
+        message: message,
+        createdAt: new Date()
+      }]);
+      setMessage("");
+    }
+    setSending(false);
+  }
+
   return (
     <div className="h-16 border-t-2 overflow-hidden flex gap-2 py-3 px-3">
       <Button size={"icon"}>
         <Paperclip></Paperclip>
       </Button>
       <InputGroup>
-        <InputGroupInput type="message" placeholder="Send a message" />
+        <InputGroupInput
+          type="message"
+          placeholder="Send a message"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+        />
       </InputGroup>
-      <Button>
+      <Button onClick={sendMessage} disabled={sending}>
         <Send></Send>
         Send
       </Button>
@@ -83,19 +122,8 @@ function ChatBar() {
 }
 
 function MessagePane() {
-  const params = useParams()
-  const [messages, setMessages] = useState<any[]>([])
-  const contactUser = useAtomValue(contactUserAtom)
-
-  async function getMessages() {
-    const response = await fetch(`/api/messages?contactId=${params.id}`)
-    const responseBody = await response.json()
-    setMessages(responseBody.messages)
-  }
-
-  useEffect(() => {
-    getMessages()
-  }, [])
+  const messages = useAtomValue(messageHistoryAtom);
+  const contactUser = useAtomValue(contactUserAtom);
 
   return (
     <div className="overflow-auto flex flex-col-reverse p-4">

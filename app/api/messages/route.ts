@@ -4,9 +4,15 @@ import { db } from "@/lib/db";
 import { messages, user } from "@/lib/schema";
 import { asc, and, eq, gt, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
+import { z } from "zod";
 
 const sender = alias(user, "sender");
 const receiver = alias(user, "receiver");
+
+const messageSchema = z.object({
+  receiverId: z.string().uuid(),
+  message: z.string().min(1),
+});
 
 export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: request.headers });
@@ -46,13 +52,13 @@ export async function GET(request: Request) {
         name: sender.name,
         email: sender.email,
         image: sender.image,
-        id: sender.id
+        id: sender.id,
       },
       receiver: {
         name: receiver.name,
         email: receiver.email,
         image: receiver.image,
-        id: receiver.id
+        id: receiver.id,
       },
       createdAt: messages.createdAt,
     })
@@ -70,4 +76,39 @@ export async function GET(request: Request) {
     { messages: data, nextCursor, hasMore },
     { status: 200 },
   );
+}
+
+export async function POST(request: Request) {
+  const session = await auth.api.getSession({ headers: request.headers });
+
+  if (!session?.user) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  const body = await request.json();
+  const result = messageSchema.safeParse(body);
+
+  if (!result.success) {
+    return new NextResponse("Invalid request body", { status: 400 });
+  }
+
+  const { receiverId, message } = result.data;
+
+  const [createdMessage] = await db
+    .insert(messages)
+    .values({
+      senderId: session.user.id,
+      recieverId: receiverId,
+      message,
+      createdAt: new Date(),
+    })
+    .returning({
+      id: messages.id,
+      senderId: messages.senderId,
+      receiverId: messages.recieverId,
+      message: messages.message,
+      createdAt: messages.createdAt,
+    });
+
+  return NextResponse.json({ message: createdMessage }, { status: 201 });
 }
