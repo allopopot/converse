@@ -126,14 +126,14 @@ function MessagePane() {
   const contactUser = useAtomValue(contactUserAtom);
 
   return (
-    <div className="overflow-auto flex flex-col-reverse p-4">
+    <div className="overflow-auto flex flex-col p-4">
       {messages.map((ax, idx) => {
         return (
           <div
             key={idx}
             className={[
               "flex w-full mb-4 first:mb-0",
-              ax.sender.id === contactUser?.id ? "justify-end-safe" : "",
+              ax.sender.id === contactUser?.id ? "" : "justify-end-safe",
             ].join(" ")}
           >
             <div
